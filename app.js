@@ -521,6 +521,9 @@ els.settingsForm.addEventListener('submit', saveConfig);
 function init() {
     loadConfig();
     
+    // Render immediately using defaults/cache so the page is populated on load
+    calculateAndRender();
+    
     // Initial fetch
     fetchLiveData();
     
