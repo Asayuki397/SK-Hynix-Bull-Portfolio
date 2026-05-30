@@ -234,7 +234,7 @@ async function fetchLiveData() {
 
             let baselinesUpdated = false;
 
-            // Fetch Stock baseline close (pcv = previous close value)
+            // Fetch Stock baseline close (pcv = previous close value when open, nv = today's regular session close when closed)
             const stockRes = await fetch(stockUrl);
             if (stockRes.ok) {
                 let text = await stockRes.text();
@@ -244,8 +244,14 @@ async function fetchLiveData() {
                 }
                 const data = JSON.parse(text);
                 const stockData = data?.result?.areas?.[0]?.datas?.[0];
-                if (stockData && stockData.ms === 'OPEN') {
-                    const realStockBaseline = parseFloat(stockData.pcv || stockData.sv);
+                if (stockData) {
+                    let realStockBaseline = 0;
+                    if (stockData.ms === 'OPEN') {
+                        realStockBaseline = parseFloat(stockData.pcv || stockData.sv);
+                    } else if (stockData.ms === 'CLOSE') {
+                        realStockBaseline = parseFloat(stockData.nv || stockData.sv);
+                    }
+                    
                     if (realStockBaseline && realStockBaseline !== state.config.stockBaseline) {
                         state.config.stockBaseline = realStockBaseline;
                         baselinesUpdated = true;
@@ -253,7 +259,7 @@ async function fetchLiveData() {
                 }
             }
 
-            // Fetch ETF baseline close (pcv = previous close value)
+            // Fetch ETF baseline close (pcv = previous close value when open, nv = today's regular session close when closed)
             const etfRes = await fetch(etfUrl);
             if (etfRes.ok) {
                 let text = await etfRes.text();
@@ -263,8 +269,14 @@ async function fetchLiveData() {
                 }
                 const data = JSON.parse(text);
                 const etfData = data?.result?.areas?.[0]?.datas?.[0];
-                if (etfData && etfData.ms === 'OPEN') {
-                    const realEtfBaseline = parseFloat(etfData.pcv || etfData.sv);
+                if (etfData) {
+                    let realEtfBaseline = 0;
+                    if (etfData.ms === 'OPEN') {
+                        realEtfBaseline = parseFloat(etfData.pcv || etfData.sv);
+                    } else if (etfData.ms === 'CLOSE') {
+                        realEtfBaseline = parseFloat(etfData.nv || etfData.sv);
+                    }
+                    
                     if (realEtfBaseline && realEtfBaseline !== state.config.etfBaseline) {
                         state.config.etfBaseline = realEtfBaseline;
                         baselinesUpdated = true;
