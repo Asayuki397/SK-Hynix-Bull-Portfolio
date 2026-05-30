@@ -13,6 +13,31 @@ try {
         $response = $context.Response
         
         $urlPath = $request.Url.LocalPath
+        if ($urlPath -eq "/api/proxy") {
+            $targetUrl = $request.QueryString["url"]
+            try {
+                $proxyResponse = Invoke-WebRequest -Uri $targetUrl -Method Get -UserAgent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" -UseBasicParsing
+                
+                # Check for Content-Type header safely
+                $contentType = "text/plain; charset=utf-8"
+                if ($proxyResponse.Headers.ContainsKey("Content-Type")) {
+                    $contentType = $proxyResponse.Headers["Content-Type"]
+                }
+                $response.ContentType = $contentType
+                
+                $bytes = [System.Text.Encoding]::UTF8.GetBytes($proxyResponse.Content)
+                $response.ContentLength64 = $bytes.Length
+                $response.OutputStream.Write($bytes, 0, $bytes.Length)
+            } catch {
+                $response.StatusCode = 500
+                $errBytes = [System.Text.Encoding]::UTF8.GetBytes("Error fetching proxy: $_")
+                $response.ContentType = "text/plain; charset=utf-8"
+                $response.ContentLength64 = $errBytes.Length
+                $response.OutputStream.Write($errBytes, 0, $errBytes.Length)
+            }
+            $response.Close()
+            continue
+        }
         if ($urlPath -eq "/") { $urlPath = "/index.html" }
         
         $filePath = Join-Path $currentDir $urlPath

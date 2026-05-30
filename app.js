@@ -89,46 +89,68 @@ function loadConfig() {
             console.error('Failed to parse saved config, using defaults', e);
         }
     }
-    populateForm();
+    populateForm(true);
 }
 
 // Populate the settings form inputs
-function populateForm() {
-    document.getElementById('hl-entry-val').value = state.config.hlEntryVal;
-    document.getElementById('hl-entry-px').value = state.config.hlEntryPx;
-    document.getElementById('hl-leverage').value = state.config.hlLeverage;
-    document.getElementById('hl-liq-px').value = state.config.hlLiqPx;
+function populateForm(force = false) {
+    // If settings form is focused (user typing), don't overwrite unless forced
+    const isFormFocused = document.activeElement && document.activeElement.form === els.settingsForm;
+    if (isFormFocused && !force) return;
+
+    const setVal = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.value = val;
+    };
     
-    document.getElementById('etf-shares').value = state.config.etfShares;
-    document.getElementById('etf-buy-px').value = state.config.etfBuyPx;
-    document.getElementById('etf-leverage-mult').value = state.config.etfLeverageMult;
+    setVal('hl-entry-val', state.config.hlEntryVal);
+    setVal('hl-entry-px', state.config.hlEntryPx);
+    setVal('hl-leverage', state.config.hlLeverage);
+    setVal('hl-liq-px', state.config.hlLiqPx);
     
-    document.getElementById('stock-baseline').value = state.config.stockBaseline;
-    document.getElementById('etf-baseline').value = state.config.etfBaseline;
+    setVal('etf-shares', state.config.etfShares);
+    setVal('etf-buy-px', state.config.etfBuyPx);
+    setVal('etf-leverage-mult', state.config.etfLeverageMult);
+    
+    setVal('stock-baseline', state.config.stockBaseline);
+    setVal('etf-baseline', state.config.etfBaseline);
 }
 
 // Save config from form
 function saveConfig(e) {
     e.preventDefault();
     
-    state.config.hlEntryVal = parseFloat(document.getElementById('hl-entry-val').value);
-    state.config.hlEntryPx = parseFloat(document.getElementById('hl-entry-px').value);
-    state.config.hlLeverage = parseInt(document.getElementById('hl-leverage').value);
-    state.config.hlLiqPx = parseFloat(document.getElementById('hl-liq-px').value);
+    const getFloatVal = (id, fallback) => {
+        const el = document.getElementById(id);
+        return el ? (parseFloat(el.value) || fallback) : fallback;
+    };
     
-    state.config.etfShares = parseInt(document.getElementById('etf-shares').value);
-    state.config.etfBuyPx = parseFloat(document.getElementById('etf-buy-px').value);
-    state.config.etfLeverageMult = parseFloat(document.getElementById('etf-leverage-mult').value);
+    const getIntVal = (id, fallback) => {
+        const el = document.getElementById(id);
+        return el ? (parseInt(el.value) || fallback) : fallback;
+    };
     
-    state.config.stockBaseline = parseFloat(document.getElementById('stock-baseline').value);
-    state.config.etfBaseline = parseFloat(document.getElementById('etf-baseline').value);
+    state.config.hlEntryVal = getFloatVal('hl-entry-val', DEFAULT_CONFIG.hlEntryVal);
+    state.config.hlEntryPx = getFloatVal('hl-entry-px', DEFAULT_CONFIG.hlEntryPx);
+    state.config.hlLeverage = getIntVal('hl-leverage', DEFAULT_CONFIG.hlLeverage);
+    state.config.hlLiqPx = getFloatVal('hl-liq-px', DEFAULT_CONFIG.hlLiqPx);
+    
+    state.config.etfShares = getIntVal('etf-shares', DEFAULT_CONFIG.etfShares);
+    state.config.etfBuyPx = getFloatVal('etf-buy-px', DEFAULT_CONFIG.etfBuyPx);
+    state.config.etfLeverageMult = getFloatVal('etf-leverage-mult', DEFAULT_CONFIG.etfLeverageMult);
+    
+    state.config.stockBaseline = getFloatVal('stock-baseline', DEFAULT_CONFIG.stockBaseline);
+    state.config.etfBaseline = getFloatVal('etf-baseline', DEFAULT_CONFIG.etfBaseline);
     
     localStorage.setItem('hynix_portfolio_config', JSON.stringify(state.config));
     showToast('Configuration saved and applied!', 'success');
     
     // Collapse settings panel after saving
-    els.settingsTrigger.classList.add('collapsed');
+    if (els.settingsTrigger) {
+        els.settingsTrigger.classList.add('collapsed');
+    }
     
+    populateForm(true);
     calculateAndRender();
 }
 
@@ -164,42 +186,105 @@ async function fetchLiveData() {
         const rateData = await rateRes.json();
         const currentRate = rateData.rates.KRW;
         if (currentRate) {
-            state.market.usdKrwRate = currentRate;
+            state.market.usdKrwRate = parseFloat(currentRate);
         }
 
         // 2. Fetch Hyperliquid xyz:SKHX
-        const hlRes = await fetch('https://api.hyperliquid.xyz/info', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type: 'metaAndAssetCtxs', dex: 'xyz' })
-        });
-        if (!hlRes.ok) throw new Error('Hyperliquid API response not OK');
-        const hlData = await hlRes.json();
-        
-        const universe = hlData[0].universe;
-        const ctxs = hlData[1];
-        
-        let targetIndex = -1;
-        for (let i = 0; i < universe.length; i++) {
-            if (universe[i].name === 'xyz:SKHX') {
-                targetIndex = i;
-                break;
+        try {
+            const hlRes = await fetch('https://api.hyperliquid.xyz/info', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'metaAndAssetCtxs', dex: 'xyz' })
+            });
+            if (hlRes.ok) {
+                const hlData = await hlRes.json();
+                const universe = hlData[0].universe;
+                const ctxs = hlData[1];
+                
+                let targetIndex = -1;
+                for (let i = 0; i < universe.length; i++) {
+                    if (universe[i].name === 'xyz:SKHX') {
+                        targetIndex = i;
+                        break;
+                    }
+                }
+                
+                if (targetIndex >= 0) {
+                    const ctx = ctxs[targetIndex];
+                    state.market.hlPrice = parseFloat(ctx.midPx || ctx.markPx) || 0;
+                    state.market.hlOraclePrice = parseFloat(ctx.oraclePx) || 0;
+                    state.market.hlMidPrice = parseFloat(ctx.midPx || ctx.markPx) || 0;
+                    state.market.hlPrevDayPrice = parseFloat(ctx.prevDayPx) || 0;
+                } else {
+                    console.warn('Asset xyz:SKHX not found in Hyperliquid universe (market likely closed).');
+                }
+            } else {
+                console.error('Hyperliquid API response not OK');
             }
+        } catch (e) {
+            console.error('Failed to fetch Hyperliquid prices:', e);
         }
-        
-        if (targetIndex >= 0) {
-            const ctx = ctxs[targetIndex];
-            state.market.hlPrice = parseFloat(ctx.midPx || ctx.markPx);
-            state.market.hlOraclePrice = parseFloat(ctx.oraclePx);
-            state.market.hlMidPrice = parseFloat(ctx.midPx || ctx.markPx);
-            state.market.hlPrevDayPrice = parseFloat(ctx.prevDayPx);
-        } else {
-            throw new Error('Asset xyz:SKHX not found in Hyperliquid universe');
+
+        // 3. Fetch Naver Stock & ETF baselines when market is open
+        try {
+            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const proxyUrl = isLocal ? '/api/proxy?url=' : 'https://api.allorigins.win/get?url=';
+            const stockUrl = proxyUrl + encodeURIComponent('https://polling.finance.naver.com/api/realtime?query=SERVICE_ITEM:000660');
+            const etfUrl = proxyUrl + encodeURIComponent('https://polling.finance.naver.com/api/realtime?query=SERVICE_ITEM:0195S0');
+
+            let baselinesUpdated = false;
+
+            // Fetch Stock baseline close (pcv = previous close value)
+            const stockRes = await fetch(stockUrl);
+            if (stockRes.ok) {
+                let text = await stockRes.text();
+                if (!isLocal) {
+                    const json = JSON.parse(text);
+                    text = json.contents;
+                }
+                const data = JSON.parse(text);
+                const stockData = data?.result?.areas?.[0]?.datas?.[0];
+                if (stockData && stockData.ms === 'OPEN') {
+                    const realStockBaseline = parseFloat(stockData.pcv || stockData.sv);
+                    if (realStockBaseline && realStockBaseline !== state.config.stockBaseline) {
+                        state.config.stockBaseline = realStockBaseline;
+                        baselinesUpdated = true;
+                    }
+                }
+            }
+
+            // Fetch ETF baseline close (pcv = previous close value)
+            const etfRes = await fetch(etfUrl);
+            if (etfRes.ok) {
+                let text = await etfRes.text();
+                if (!isLocal) {
+                    const json = JSON.parse(text);
+                    text = json.contents;
+                }
+                const data = JSON.parse(text);
+                const etfData = data?.result?.areas?.[0]?.datas?.[0];
+                if (etfData && etfData.ms === 'OPEN') {
+                    const realEtfBaseline = parseFloat(etfData.pcv || etfData.sv);
+                    if (realEtfBaseline && realEtfBaseline !== state.config.etfBaseline) {
+                        state.config.etfBaseline = realEtfBaseline;
+                        baselinesUpdated = true;
+                    }
+                }
+            }
+
+            if (baselinesUpdated) {
+                localStorage.setItem('hynix_portfolio_config', JSON.stringify(state.config));
+                populateForm(false); // Sync inputs in form safely (doesn't overwrite if user is typing)
+            }
+        } catch (e) {
+            console.error('Failed to sync baseline close values from Naver:', e);
         }
 
         // Update timestamp
         const now = new Date();
-        els.updateTimestamp.textContent = now.toLocaleTimeString('ko-KR', { hour12: false });
+        if (els.updateTimestamp) {
+            els.updateTimestamp.textContent = now.toLocaleTimeString('ko-KR', { hour12: false });
+        }
         
         // Success Toast (only occasional, not on every poll to prevent noise)
         if (Math.random() < 0.1) {
