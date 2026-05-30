@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SK Hynix Leveraged Portfolio Terminal</title>
+    <meta name="description" content="Hyperliquid perpetual contract and Korean stock leveraged ETF integrated portfolio tracker. Tracks theoretical price, portfolio value in KRW, and daily change.">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header>
+            <div class="logo-section">
+                <div class="logo-icon">SK</div>
+                <div class="logo-text">
+                    <h1>HYNIX DUAL PORTFOLIO</h1>
+                    <p>REAL-TIME CRYPTO-FI INTEGRATION</p>
+                </div>
+            </div>
+            
+            <div class="header-meta">
+                <div class="meta-pill">
+                    <span class="label">Timezone:</span>
+                    <span class="value" id="tz-time">UTC+09 (KST)</span>
+                </div>
+                <div class="meta-pill">
+                    <span class="label">USD/KRW:</span>
+                    <span class="value" id="rate-display">0.00 KRW</span>
+                </div>
+                <div class="meta-pill">
+                    <span class="pulse-indicator"></span>
+                    <span class="label">Last Fetch:</span>
+                    <span class="value" id="update-timestamp">00:00:00</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Overview Cards -->
+        <section class="overview-grid">
+            <div class="overview-card nav-card">
+                <span class="card-title">Net Asset Value (NAV)</span>
+                <span class="card-value" id="total-nav">₩0</span>
+                <span class="card-subtitle">
+                    Total Equity + Cash Collateral in KRW
+                </span>
+            </div>
+            
+            <div class="overview-card exposure-card">
+                <span class="card-title">Total Market Exposure</span>
+                <span class="card-value" id="total-exposure">₩0</span>
+                <span class="card-subtitle">
+                    Combined Leverage Face Value
+                </span>
+            </div>
+
+            <div class="overview-card pnl-card" id="portfolio-pnl-card">
+                <span class="card-title">Total Unrealized PnL</span>
+                <span class="card-value" id="total-pnl">₩0</span>
+                <span class="card-subtitle" id="total-pnl-roi">
+                    +0.00% Total Return on Investment
+                </span>
+            </div>
+
+            <div class="overview-card change-card" id="portfolio-change-card">
+                <span class="card-title">Daily Portfolio Change</span>
+                <span class="card-value" id="total-change">₩0</span>
+                <span class="card-subtitle" id="total-change-pct">
+                    +0.00% (Since market open/yesterday close)
+                </span>
+            </div>
+        </section>
+
+        <!-- Twin Leveraged Assets -->
+        <section class="assets-grid">
+            
+            <!-- Asset 1: Hyperliquid Perpetual Position -->
+            <div class="asset-card hyperliquid">
+                <div class="asset-header">
+                    <div class="asset-info-top">
+                        <span class="asset-badge">Hyperliquid Perpetual</span>
+                        <h2 id="hl-symbol-display">SKHYNIX-USDC</h2>
+                        <p>5x Long Futures (xyz Sub-DEX)</p>
+                    </div>
+                </div>
+
+                <div class="asset-current-metrics">
+                    <div class="metric-box">
+                        <span class="label">Mark Price</span>
+                        <span class="value" id="hl-price-display">$0.00</span>
+                    </div>
+                    <div class="metric-box">
+                        <span class="label">Unrealized PnL</span>
+                        <span class="value" id="hl-pnl-display">$0.00</span>
+                    </div>
+                </div>
+
+                <div class="detail-list">
+                    <div class="detail-row">
+                        <span class="label">Position Size (Contracts)</span>
+                        <span class="value" id="hl-detail-size">0.00</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Entry Price</span>
+                        <span class="value" id="hl-detail-entry">$0.00</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Position Value (USD)</span>
+                        <span class="value" id="hl-detail-val-usd">$0.00</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Position Value (KRW)</span>
+                        <span class="value" id="hl-detail-val-krw">₩0</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Margin Collateral</span>
+                        <span class="value" id="hl-detail-collateral">$0.00</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Margin Net Equity (KRW)</span>
+                        <span class="value" id="hl-detail-equity-krw">₩0</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Liquidation Price</span>
+                        <span class="value" id="hl-detail-liq">$0.00</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Daily Price Change</span>
+                        <span class="value" id="hl-detail-daily-change">$0.00 (+0.00%)</span>
+                    </div>
+                </div>
+
+                <!-- Margin Safety Progress -->
+                <div class="margin-safety-container">
+                    <div class="margin-safety-header">
+                        <span class="label" style="color: var(--text-muted); font-weight:600;">Margin Health</span>
+                        <span class="value" id="hl-safety-pct" style="font-weight:700; color: var(--color-up);">100% Safe</span>
+                    </div>
+                    <div class="margin-safety-bar-bg">
+                        <div class="margin-safety-bar-fill" id="hl-safety-bar"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Asset 2: Leveraged ETF -->
+            <div class="asset-card etf">
+                <div class="asset-header">
+                    <div class="asset-info-top">
+                        <span class="asset-badge">Leveraged Spot ETF (2x)</span>
+                        <h2>TIGER SK하이닉스레버리지</h2>
+                        <p>KOSPI Listed (0195S0 / Tracker)</p>
+                    </div>
+                </div>
+
+                <div class="asset-current-metrics">
+                    <div class="metric-box">
+                        <span class="label">Theoretical Market Price</span>
+                        <span class="value" id="etf-price-display">₩0</span>
+                    </div>
+                    <div class="metric-box">
+                        <span class="label">Total Return (PnL)</span>
+                        <span class="value" id="etf-pnl-display">₩0</span>
+                    </div>
+                </div>
+
+                <div class="detail-list">
+                    <div class="detail-row">
+                        <span class="label">Holding Shares</span>
+                        <span class="value" id="etf-detail-shares">0</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Average Buy Price</span>
+                        <span class="value" id="etf-detail-avg-price">₩0</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Purchase Cost Basis</span>
+                        <span class="value" id="etf-detail-cost">₩0</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Theoretical Market Value</span>
+                        <span class="value" id="etf-detail-val">₩0</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Theoretical Market Exposure</span>
+                        <span class="value" id="etf-detail-exposure">₩0</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Theoretical Total ROI</span>
+                        <span class="value" id="etf-detail-roi">+0.00%</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Implied SK Hynix Stock Price</span>
+                        <span class="value" id="etf-detail-implied-stock">₩0</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Stock Baseline Close (KST)</span>
+                        <span class="value" id="etf-detail-stock-baseline">₩0</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">ETF Baseline Close (KST)</span>
+                        <span class="value" id="etf-detail-etf-baseline">₩0</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Settings Panel -->
+        <section class="panel-section">
+            <div class="panel-header collapsed" id="settings-trigger">
+                <h3>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                    Dashboard Configurations
+                </h3>
+                <span style="font-size: 0.85rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.25rem;">
+                    Edit Positions & baselines
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="trigger-arrow"><polyline points="6 9 12 15 18 9"/></svg>
+                </span>
+            </div>
+            
+            <form id="settings-form" class="panel-content">
+                <!-- Hyperliquid Positions -->
+                <div class="form-group-wrapper">
+                    <div class="form-title">Hyperliquid Position Settings</div>
+                    
+                    <div class="form-group">
+                        <label for="hl-entry-val">Position Entry Value (USDC)</label>
+                        <input type="number" id="hl-entry-val" step="0.01" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="hl-entry-px">Entry Price (USDC)</label>
+                        <input type="number" id="hl-entry-px" step="0.1" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="hl-leverage">Leverage (x)</label>
+                        <input type="number" id="hl-leverage" min="1" max="20" step="1" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="hl-liq-px">Liquidation Price (USDC)</label>
+                        <input type="number" id="hl-liq-px" step="0.1" required>
+                    </div>
+                </div>
+
+                <!-- ETF Position Settings -->
+                <div class="form-group-wrapper">
+                    <div class="form-title etf-group-title">Leveraged ETF Settings</div>
+                    
+                    <div class="form-group">
+                        <label for="etf-shares">Holding Shares</label>
+                        <input type="number" id="etf-shares" step="1" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="etf-buy-px">Average Purchase Price (KRW)</label>
+                        <input type="number" id="etf-buy-px" step="1" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="etf-leverage-mult">ETF Leverage Multiplier</label>
+                        <input type="number" id="etf-leverage-mult" min="1" max="3" step="1" required>
+                    </div>
+                </div>
+
+                <!-- Market Baseline Closes -->
+                <div class="form-group-wrapper">
+                    <div class="form-title" style="border-left-color: var(--text-secondary);">Market Baseline Closes</div>
+                    
+                    <div class="form-group">
+                        <label for="stock-baseline">SK Hynix Close Price (KRW)</label>
+                        <input type="number" id="stock-baseline" step="1000" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="etf-baseline">TIGER ETF Close Price (KRW)</label>
+                        <input type="number" id="etf-baseline" step="5" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit">Save & Apply Changes</button>
+            </form>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <span>SK Hynix Portfolio Terminal &copy; 2026. Data updated automatically.</span>
+            <span>Powered by <a href="https://hyperliquid.xyz/" target="_blank">Hyperliquid API</a> &amp; <a href="https://www.exchangerate-api.com" target="_blank">ExchangeRate-API</a></span>
+        </footer>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
