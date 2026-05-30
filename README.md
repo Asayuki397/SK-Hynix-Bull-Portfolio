@@ -57,7 +57,9 @@ $$P_{\text{ETF, Theoretical}} = \text{ETF}_{\text{Baseline}} \times (1 + 2 \time
 $$V_{\text{ETF, KRW}} = N_{\text{ETF}} \times P_{\text{ETF, Theoretical}}$$
 
 **ETF Unrealized P&L**:
-$$\text{PnL}_{\text{ETF, KRW}} = V_{\text{ETF, KRW}} - (N_{\text{ETF}} \times B_{\text{ETF}})$$
+$$
+\text{PnL}_{\text{ETF, KRW}} = V_{\text{ETF, KRW}} - (N_{\text{ETF}} \times B_{\text{ETF}})
+$$
 *(where $B_{\text{ETF}}$ is your average purchase price: `25,288 KRW`).*
 
 ### 4. Combined Portfolio Metrics
