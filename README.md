@@ -17,49 +17,67 @@ All calculations are executed in real time inside `app.js` and updated dynamical
 * **Rate**: $R_{\text{USD/KRW}}$ (Current USD to KRW rate, default fallback: `1506.66`).
 
 ### 2. Hyperliquid Perpetual Position (5x Long)
-* **Position Size ($N_{\text{HL}}$)**: 
-  $$N_{\text{HL}} = \frac{V_{\text{Entry, USDC}}}{P_{\text{Entry, USDC}}} = \frac{23,020.23}{1,553.5} \approx 14.8183 \text{ contracts}$$
-* **Position Value**:
-  $$V_{\text{HL, USD}} = N_{\text{HL}} \times P_{\text{Current, USD}}$$
-  $$V_{\text{HL, KRW}} = V_{\text{HL, USD}} \times R_{\text{USD/KRW}}$$
-* **Unrealized P&L**:
-  $$\text{PnL}_{\text{HL, USD}} = N_{\text{HL}} \times (P_{\text{Current, USD}} - P_{\text{Entry, USD}})$$
-  $$\text{PnL}_{\text{HL, KRW}} = \text{PnL}_{\text{HL, USD}} \times R_{\text{USD/KRW}}$$
-* **Margin Net Equity**:
-  $$E_{\text{HL, USD}} = \frac{V_{\text{Entry, USDC}}}{5} + \text{PnL}_{\text{HL, USD}}$$
-  $$E_{\text{HL, KRW}} = E_{\text{HL, USD}} \times R_{\text{USD/KRW}}$$
-* **Margin Safety (Distance to Liquidation)**:
-  $$\text{Safety Score (\%)} = \max\left(0, \min\left(100, \frac{P_{\text{Current, USD}} - P_{\text{Liq, USD}}}{P_{\text{Entry, USD}} - P_{\text{Liq, USD}}} \times 100\right)\right)$$
+
+**Position Size ($N_{\text{HL}}$)**: 
+$$N_{\text{HL}} = \frac{V_{\text{Entry, USDC}}}{P_{\text{Entry, USDC}}} = \frac{23,020.23}{1,553.5} \approx 14.8183 \text{ contracts}$$
+
+**Position Value**:
+$$V_{\text{HL, USD}} = N_{\text{HL}} \times P_{\text{Current, USD}}$$
+
+$$V_{\text{HL, KRW}} = V_{\text{HL, USD}} \times R_{\text{USD/KRW}}$$
+
+**Unrealized P&L**:
+$$\text{PnL}_{\text{HL, USD}} = N_{\text{HL}} \times (P_{\text{Current, USD}} - P_{\text{Entry, USD}})$$
+
+$$\text{PnL}_{\text{HL, KRW}} = \text{PnL}_{\text{HL, USD}} \times R_{\text{USD/KRW}}$$
+
+**Margin Net Equity**:
+$$E_{\text{HL, USD}} = \frac{V_{\text{Entry, USDC}}}{5} + \text{PnL}_{\text{HL, USD}}$$
+
+$$E_{\text{HL, KRW}} = E_{\text{HL, USD}} \times R_{\text{USD/KRW}}$$
+
+**Margin Safety (Distance to Liquidation)**:
+$$\text{Safety Score (\%)} = \max\left(0, \min\left(100, \frac{P_{\text{Current, USD}} - P_{\text{Liq, USD}}}{P_{\text{Entry, USD}} - P_{\text{Liq, USD}}} \times 100\right)\right)$$
 
 ### 3. Leveraged ETF Position (2x TIGER SK하이닉스레버리지)
 The Leveraged ETF tracks 2x the daily returns of the underlying SK Hynix stock. When KOSPI is closed, the theoretical market value of the ETF is projected based on the movements of the Hyperliquid SKHX perp.
 
-* **Implied Stock Price ($S_{\text{Theoretical, KRW}}$)**:
-  $$S_{\text{Theoretical, KRW}} = P_{\text{Current, USD}} \times R_{\text{USD/KRW}}$$
-* **Stock Daily Return ($R_{\text{Stock}}$)**:
-  $$R_{\text{Stock}} = \frac{S_{\text{Theoretical, KRW}}}{S_{\text{Baseline}}} - 1$$
-  *(where $S_{\text{Baseline}}$ is the baseline closing price of the stock from the previous trading day).*
-* **Theoretical ETF Price ($P_{\text{ETF, Theoretical}}$)**:
-  $$P_{\text{ETF, Theoretical}} = \text{ETF}_{\text{Baseline}} \times (1 + 2 \times R_{\text{Stock}})$$
-  *(where $\text{ETF}_{\text{Baseline}}$ is the baseline closing price of the ETF from the previous trading day).*
-* **ETF Position Value**:
-  $$V_{\text{ETF, KRW}} = N_{\text{ETF}} \times P_{\text{ETF, Theoretical}}$$
-* **ETF Unrealized P&L**:
-  $$\text{PnL}_{\text{ETF, KRW}} = V_{\text{ETF, KRW}} - (N_{\text{ETF}} \times B_{\text{ETF}})$$
-  *(where $B_{\text{ETF}}$ is your average purchase price: `25,288 KRW`).*
+**Implied Stock Price ($S_{\text{Theoretical, KRW}}$)**:
+$$S_{\text{Theoretical, KRW}} = P_{\text{Current, USD}} \times R_{\text{USD/KRW}}$$
+
+**Stock Daily Return ($R_{\text{Stock}}$)**:
+$$R_{\text{Stock}} = \frac{S_{\text{Theoretical, KRW}}}{S_{\text{Baseline}}} - 1$$
+*(where $S_{\text{Baseline}}$ is the baseline closing price of the stock from the previous trading day).*
+
+**Theoretical ETF Price ($P_{\text{ETF, Theoretical}}$)**:
+$$P_{\text{ETF, Theoretical}} = \text{ETF}_{\text{Baseline}} \times (1 + 2 \times R_{\text{Stock}})$$
+*(where $\text{ETF}_{\text{Baseline}}$ is the baseline closing price of the ETF from the previous trading day).*
+
+**ETF Position Value**:
+$$V_{\text{ETF, KRW}} = N_{\text{ETF}} \times P_{\text{ETF, Theoretical}}$$
+
+**ETF Unrealized P&L**:
+$$\text{PnL}_{\text{ETF, KRW}} = V_{\text{ETF, KRW}} - (N_{\text{ETF}} \times B_{\text{ETF}})$$
+*(where $B_{\text{ETF}}$ is your average purchase price: `25,288 KRW`).*
 
 ### 4. Combined Portfolio Metrics
-* **Net Asset Value (NAV)**: Combined liquid capital equity.
-  $$\text{NAV}_{\text{KRW}} = E_{\text{HL, KRW}} + V_{\text{ETF, KRW}}$$
-* **Total Market Exposure**: Combined face-value market leverage (incorporating the 2x ETF leverage multiplier).
-  $$\text{Exposure}_{\text{KRW}} = V_{\text{HL, KRW}} + (V_{\text{ETF, KRW}} \times 2)$$
-* **Total Daily Change (KST / UTC+9)**:
-  $$\Delta_{\text{Total, KRW}} = \Delta_{\text{HL, KRW}} + \Delta_{\text{ETF, KRW}}$$
-* **Total Unrealized P&L**:
-  $$\text{PnL}_{\text{Total, KRW}} = \text{PnL}_{\text{HL, KRW}} + \text{PnL}_{\text{ETF, KRW}}$$
-* **Total ROI**:
-  $$\text{Total ROI (\%)} = \frac{\text{PnL}_{\text{Total, KRW}}}{\text{Cost Basis}_{\text{Total, KRW}}} \times 100$$
-  $$\text{Cost Basis}_{\text{Total, KRW}} = \left(\frac{V_{\text{Entry, USDC}}}{5} \times R_{\text{USD/KRW}}\right) + (N_{\text{ETF}} \times B_{\text{ETF}})$$
+
+**Net Asset Value (NAV)** (Combined liquid capital equity):
+$$\text{NAV}_{\text{KRW}} = E_{\text{HL, KRW}} + V_{\text{ETF, KRW}}$$
+
+**Total Market Exposure** (Combined face-value market leverage, incorporating the 2x ETF leverage multiplier):
+$$\text{Exposure}_{\text{KRW}} = V_{\text{HL, KRW}} + (V_{\text{ETF, KRW}} \times 2)$$
+
+**Total Daily Change (KST / UTC+9)**:
+$$\Delta_{\text{Total, KRW}} = \Delta_{\text{HL, KRW}} + \Delta_{\text{ETF, KRW}}$$
+
+**Total Unrealized P&L**:
+$$\text{PnL}_{\text{Total, KRW}} = \text{PnL}_{\text{HL, KRW}} + \text{PnL}_{\text{ETF, KRW}}$$
+
+**Total ROI**:
+$$\text{Total ROI (\%)} = \frac{\text{PnL}_{\text{Total, KRW}}}{\text{Cost Basis}_{\text{Total, KRW}}} \times 100$$
+
+$$\text{Cost Basis}_{\text{Total, KRW}} = \left(\frac{V_{\text{Entry, USDC}}}{5} \times R_{\text{USD/KRW}}\right) + (N_{\text{ETF}} \times B_{\text{ETF}})$$
 
 ---
 
