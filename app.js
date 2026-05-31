@@ -45,6 +45,11 @@ const els = {
     totalChangePct: document.getElementById('total-change-pct'),
     portfolioChangeCard: document.getElementById('portfolio-change-card'),
     
+    // SK Hynix Stock Change card
+    stockChangeCard: document.getElementById('stock-change-card'),
+    stockChangeVal: document.getElementById('stock-change-val'),
+    stockPriceSubtitle: document.getElementById('stock-price-subtitle'),
+    
     // Hyperliquid Position card
     hlPriceDisplay: document.getElementById('hl-price-display'),
     hlPnlDisplay: document.getElementById('hl-pnl-display'),
@@ -441,6 +446,30 @@ function calculateAndRender() {
     updateAndFlash(els.totalNav, formatKRW(totalNavKrw), totalNavKrw, prevNav);
     updateAndFlash(els.totalExposure, formatKRW(totalExposureKrw), totalExposureKrw, prevExposure);
     
+    // Render SK Hynix Stock Change Card
+    const stockDailyChangeKrw = stockPriceKrw - config.stockBaseline;
+    const stockDailyChangePct = stockDailyReturn * 100;
+    const stockChangeText = `${stockDailyChangeKrw >= 0 ? '+' : ''}${formatKRW(stockDailyChangeKrw)} (${formatPct(stockDailyChangePct)})`;
+    
+    const prevStockPrice = prevMarket ? (prevMarket.hlPrice || config.hlEntryPx) * prevMarket.usdKrwRate : null;
+    const prevStockChange = prevStockPrice ? prevStockPrice - config.stockBaseline : null;
+    
+    updateAndFlash(els.stockChangeVal, stockChangeText, stockDailyChangeKrw, prevStockChange);
+    
+    if (els.stockPriceSubtitle) {
+        els.stockPriceSubtitle.textContent = `Current Price: ${formatKRW(stockPriceKrw)}`;
+    }
+    
+    if (els.stockChangeCard) {
+        if (stockDailyChangeKrw >= 0) {
+            els.stockChangeCard.classList.remove('negative');
+            if (els.stockChangeVal) els.stockChangeVal.style.color = 'var(--color-up)';
+        } else {
+            els.stockChangeCard.classList.add('negative');
+            if (els.stockChangeVal) els.stockChangeVal.style.color = 'var(--color-down)';
+        }
+    }
+    
     // Render PnL Card
     const prevPnl = prevMarket ? (prevMarket.hlPrice ? 
         (((config.hlEntryVal / config.hlEntryPx) * (prevMarket.hlPrice - config.hlEntryPx)) * prevMarket.usdKrwRate) + 
@@ -510,7 +539,7 @@ function calculateAndRender() {
     els.etfDetailVal.textContent = formatKRW(etfTheoreticalValue);
     els.etfDetailExposure.textContent = formatKRW(etfExposureKrw);
     
-    els.etfDetailRoi.textContent = `${formatPct(etfRoiPct)} Total Return`;
+    els.etfDetailRoi.textContent = formatPct(etfRoiPct);
     els.etfDetailRoi.style.color = etfPnlKrw >= 0 ? 'var(--color-up)' : 'var(--color-down)';
     
     els.etfDetailImpliedStock.textContent = formatKRW(stockPriceKrw);
