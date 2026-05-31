@@ -333,12 +333,11 @@ function updateAndFlash(element, valueText, numericValue, prevNumericValue, isPo
     element.textContent = valueText;
     
     if (isPositiveNegativeStyle) {
+        element.classList.remove('up', 'down');
         if (numericValue > 0) {
-            element.className = 'value up';
+            element.classList.add('up');
         } else if (numericValue < 0) {
-            element.className = 'value down';
-        } else {
-            element.className = 'value';
+            element.classList.add('down');
         }
     }
 }
