@@ -201,8 +201,6 @@ header {
 
 .overview-card.nav-card::before { background: linear-gradient(to bottom, var(--hl-accent), var(--etf-accent)); }
 .overview-card.exposure-card::before { background: var(--text-secondary); }
-.overview-card.stock-card::before { background: var(--color-up); }
-.overview-card.stock-card.negative::before { background: var(--color-down); }
 .overview-card.change-card::before { background: var(--color-up); }
 .overview-card.change-card.negative::before { background: var(--color-down); }
 .overview-card.pnl-card::before { background: var(--color-up); }
