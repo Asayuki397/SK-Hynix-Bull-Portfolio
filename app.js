@@ -486,8 +486,8 @@ function calculateAndRender() {
     els.hlDetailLiq.textContent = formatUSD(config.hlLiqPx);
     
     // HL Daily Change display
-    els.hlDetailDailyChange.textContent = `${hlDailyChangeUsd >= 0 ? '+' : ''}${formatUSD(hlDailyChangeUsd)} (${formatPct(hlDailyChangePct)})`;
-    els.hlDetailDailyChange.style.color = hlDailyChangeUsd >= 0 ? 'var(--color-up)' : 'var(--color-down)';
+    els.hlDetailDailyChange.textContent = `${hlDailyChangePx >= 0 ? '+' : ''}${formatUSD(hlDailyChangePx)} (${formatPct(hlDailyChangePct)})`;
+    els.hlDetailDailyChange.style.color = hlDailyChangePx >= 0 ? 'var(--color-up)' : 'var(--color-down)';
 
     // HL Safety Bar
     els.hlSafetyPct.textContent = `${safetyScore.toFixed(1)}% Safe`;
