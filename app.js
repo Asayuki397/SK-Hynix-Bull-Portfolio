@@ -26,7 +26,9 @@ let state = {
         hlOraclePrice: 0,
         hlMidPrice: 0
     },
-    previousMarket: null
+    previousMarket: null,
+    hasFetched: false,
+    isFirstFetch: true
 };
 
 // UI Elements
@@ -246,10 +248,14 @@ async function fetchLiveData() {
                 const stockData = data?.result?.areas?.[0]?.datas?.[0];
                 if (stockData) {
                     let realStockBaseline = 0;
-                    if (stockData.ms === 'OPEN') {
-                        realStockBaseline = parseFloat(stockData.pcv || stockData.sv);
-                    } else if (stockData.ms === 'CLOSE') {
+                    if (state.isFirstFetch) {
                         realStockBaseline = parseFloat(stockData.nv || stockData.sv);
+                    } else {
+                        if (stockData.ms === 'OPEN') {
+                            realStockBaseline = parseFloat(stockData.pcv || stockData.sv);
+                        } else if (stockData.ms === 'CLOSE') {
+                            realStockBaseline = parseFloat(stockData.nv || stockData.sv);
+                        }
                     }
                     
                     if (realStockBaseline && realStockBaseline !== state.config.stockBaseline) {
@@ -271,10 +277,14 @@ async function fetchLiveData() {
                 const etfData = data?.result?.areas?.[0]?.datas?.[0];
                 if (etfData) {
                     let realEtfBaseline = 0;
-                    if (etfData.ms === 'OPEN') {
-                        realEtfBaseline = parseFloat(etfData.pcv || etfData.sv);
-                    } else if (etfData.ms === 'CLOSE') {
+                    if (state.isFirstFetch) {
                         realEtfBaseline = parseFloat(etfData.nv || etfData.sv);
+                    } else {
+                        if (etfData.ms === 'OPEN') {
+                            realEtfBaseline = parseFloat(etfData.pcv || etfData.sv);
+                        } else if (etfData.ms === 'CLOSE') {
+                            realEtfBaseline = parseFloat(etfData.nv || etfData.sv);
+                        }
                     }
                     
                     if (realEtfBaseline && realEtfBaseline !== state.config.etfBaseline) {
@@ -292,6 +302,9 @@ async function fetchLiveData() {
             console.error('Failed to sync baseline close values from Naver:', e);
         }
 
+        // Complete first fetch flag
+        state.isFirstFetch = false;
+
         // Update timestamp
         const now = new Date();
         if (els.updateTimestamp) {
@@ -303,12 +316,14 @@ async function fetchLiveData() {
             showToast('Data synced successfully.', 'success');
         }
 
+        state.hasFetched = true;
         calculateAndRender();
 
     } catch (error) {
         console.error('Error fetching live data:', error);
         showToast('Error syncing live market data. Using cached/default feeds.', 'error');
-        // Render with fallback/existing state anyway
+        state.isFirstFetch = false;
+        state.hasFetched = true;
         calculateAndRender();
     }
 }
@@ -344,6 +359,45 @@ function updateAndFlash(element, valueText, numericValue, prevNumericValue, isPo
 
 // Primary Calculations & Render loop
 function calculateAndRender() {
+    if (!state.hasFetched) {
+        const placeholder = "Fetching, please wait.";
+        
+        els.totalNav.textContent = placeholder;
+        els.totalExposure.textContent = placeholder;
+        els.totalPnl.textContent = placeholder;
+        els.totalPnlRoi.textContent = placeholder;
+        els.totalChange.textContent = placeholder;
+        els.totalChangePct.textContent = placeholder;
+        
+        els.hlPriceDisplay.textContent = placeholder;
+        els.hlPnlDisplay.textContent = placeholder;
+        els.hlDetailSize.textContent = placeholder;
+        els.hlDetailEntry.textContent = placeholder;
+        els.hlDetailValUsd.textContent = placeholder;
+        els.hlDetailValKrw.textContent = placeholder;
+        els.hlDetailCollateral.textContent = placeholder;
+        els.hlDetailEquityKrw.textContent = placeholder;
+        els.hlDetailLiq.textContent = placeholder;
+        els.hlDetailDailyChange.textContent = placeholder;
+        els.hlSafetyPct.textContent = placeholder;
+        els.hlSafetyBar.style.width = "0%";
+        
+        els.etfPriceDisplay.textContent = placeholder;
+        els.etfPnlDisplay.textContent = placeholder;
+        els.etfDetailShares.textContent = placeholder;
+        els.etfDetailAvgPrice.textContent = placeholder;
+        els.etfDetailCost.textContent = placeholder;
+        els.etfDetailVal.textContent = placeholder;
+        els.etfDetailExposure.textContent = placeholder;
+        els.etfDetailRoi.textContent = placeholder;
+        els.etfDetailImpliedStock.textContent = placeholder;
+        els.etfDetailStockBaseline.textContent = placeholder;
+        els.etfDetailEtfBaseline.textContent = placeholder;
+        
+        els.rateDisplay.textContent = placeholder;
+        return;
+    }
+
     const config = state.config;
     const market = state.market;
     const prevMarket = state.previousMarket;
