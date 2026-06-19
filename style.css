@@ -1,29 +1,29 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-    --bg-main: #060913;
-    --bg-surface: rgba(13, 20, 38, 0.45);
-    --bg-surface-solid: #0d1426;
-    --bg-surface-hover: rgba(22, 34, 64, 0.6);
-    --border-color: rgba(255, 255, 255, 0.08);
-    --border-focus: rgba(99, 102, 241, 0.4);
+    --bg-main: #24273a;                  /* Catppuccin Macchiato Base */
+    --bg-surface: #1e2030;               /* Catppuccin Macchiato Mantle */
+    --bg-surface-solid: #1e2030;         /* Catppuccin Macchiato Mantle */
+    --bg-surface-hover: #2f334d;         /* Slightly lighter surface for hover */
+    --border-color: #363a4f;             /* Catppuccin Macchiato Surface0 */
+    --border-focus: #c6a0f6;             /* Catppuccin Macchiato Mauve */
     
-    --text-primary: #f8fafc;
-    --text-secondary: #94a3b8;
-    --text-muted: #64748b;
+    --text-primary: #cad3f5;             /* Catppuccin Macchiato Text */
+    --text-secondary: #a5adcb;           /* Catppuccin Macchiato Subtext0 */
+    --text-muted: #6e738d;               /* Catppuccin Macchiato Overlay0 */
     
-    --color-up: #10b981;
-    --color-up-glow: rgba(16, 185, 129, 0.15);
-    --color-down: #ef4444;
-    --color-down-glow: rgba(239, 68, 68, 0.15);
+    --color-up: #a6da95;                 /* Catppuccin Macchiato Green */
+    --color-up-glow: rgba(166, 218, 149, 0.15);
+    --color-down: #ed8796;               /* Catppuccin Macchiato Red */
+    --color-down-glow: rgba(237, 135, 150, 0.15);
     
-    --hl-accent: #a78bfa;
-    --hl-accent-glow: rgba(167, 139, 250, 0.25);
-    --etf-accent: #22d3ee;
-    --etf-accent-glow: rgba(34, 211, 238, 0.25);
+    --hl-accent: #c6a0f6;                /* Catppuccin Macchiato Mauve */
+    --hl-accent-glow: rgba(198, 160, 246, 0.2);
+    --etf-accent: #7dc4e4;               /* Catppuccin Macchiato Sapphire */
+    --etf-accent-glow: rgba(125, 196, 228, 0.2);
     
-    --glow-violet: rgba(139, 92, 246, 0.15);
-    --glow-cyan: rgba(6, 182, 212, 0.15);
+    --glow-violet: rgba(198, 160, 246, 0.08);
+    --glow-cyan: rgba(125, 196, 228, 0.08);
     
     --font-sans: 'Outfit', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -41,10 +41,6 @@ body {
     font-family: var(--font-sans);
     min-height: 100vh;
     overflow-x: hidden;
-    background-image: 
-        radial-gradient(circle at 10% 20%, var(--glow-violet) 0%, transparent 40%),
-        radial-gradient(circle at 90% 80%, var(--glow-cyan) 0%, transparent 45%);
-    background-attachment: fixed;
     line-height: 1.5;
 }
 
@@ -66,10 +62,8 @@ header {
     padding: 1.5rem;
     border-radius: 1.5rem;
     background: var(--bg-surface);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--border-color);
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     gap: 1.5rem;
     flex-wrap: wrap;
 }
@@ -89,15 +83,15 @@ header {
     align-items: center;
     justify-content: center;
     font-weight: 800;
-    color: #060913;
+    color: #1e2030;
     font-size: 1.25rem;
-    box-shadow: 0 0 20px rgba(167, 139, 250, 0.4);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .logo-text h1 {
     font-size: 1.5rem;
     font-weight: 700;
-    background: linear-gradient(to right, #f8fafc, #cbd5e1);
+    background: linear-gradient(to right, #cad3f5, #b8c0e0);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
@@ -151,23 +145,6 @@ header {
     position: relative;
 }
 
-.pulse-indicator::after {
-    content: '';
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background-color: var(--color-up);
-    border-radius: 50%;
-    top: 0;
-    left: 0;
-    animation: pulse 1.8s infinite;
-}
-
-@keyframes pulse {
-    0% { transform: scale(1); opacity: 0.8; }
-    100% { transform: scale(3.5); opacity: 0; }
-}
-
 /* Portfolio Hero Overview */
 .overview-grid {
     display: grid;
@@ -177,8 +154,6 @@ header {
 
 .overview-card {
     background: var(--bg-surface);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--border-color);
     border-radius: 1.5rem;
     padding: 1.75rem;
@@ -208,8 +183,8 @@ header {
 
 .overview-card:hover {
     transform: translateY(-4px);
-    border-color: rgba(255, 255, 255, 0.15);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    border-color: rgba(91, 96, 120, 0.6);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
 }
 
 .card-title {
@@ -250,8 +225,6 @@ header {
 
 .asset-card {
     background: var(--bg-surface);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--border-color);
     border-radius: 1.75rem;
     padding: 2rem;
@@ -259,13 +232,13 @@ header {
     flex-direction: column;
     gap: 1.5rem;
     position: relative;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     transition: var(--transition-smooth);
 }
-
+ 
 .asset-card:hover {
-    border-color: rgba(255, 255, 255, 0.12);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+    border-color: rgba(91, 96, 120, 0.6);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
 /* Accents per Asset */
@@ -405,7 +378,7 @@ header {
 .margin-safety-bar-fill {
     height: 100%;
     border-radius: 9999px;
-    background: linear-gradient(to right, var(--color-down), #eab308, var(--color-up));
+    background: linear-gradient(to right, var(--color-down), #eed49f, var(--color-up));
     width: 0%;
     transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -413,12 +386,10 @@ header {
 /* Control Panel / Settings Panel */
 .panel-section {
     background: var(--bg-surface);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--border-color);
     border-radius: 1.75rem;
     padding: 2rem;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .panel-header {
@@ -511,15 +482,15 @@ header {
 
 .form-group input:focus {
     border-color: var(--border-focus);
-    box-shadow: 0 0 10px rgba(99, 102, 241, 0.15);
+    box-shadow: 0 0 10px rgba(198, 160, 246, 0.15);
     background: rgba(255, 255, 255, 0.05);
 }
 
 .btn-submit {
     grid-column: 1 / -1;
-    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    background: linear-gradient(135deg, #c6a0f6, #b7bdf8);
     border: none;
-    color: white;
+    color: #1e2030;
     font-family: var(--font-sans);
     font-weight: 700;
     font-size: 1rem;
@@ -527,13 +498,13 @@ header {
     border-radius: 0.875rem;
     cursor: pointer;
     transition: var(--transition-smooth);
-    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    box-shadow: 0 4px 15px rgba(198, 160, 246, 0.3);
 }
 
 .btn-submit:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
-    background: linear-gradient(135deg, #818cf8, #6366f1);
+    box-shadow: 0 6px 20px rgba(198, 160, 246, 0.5);
+    background: linear-gradient(135deg, #d3b5f7, #c5cbfa);
 }
 
 .btn-submit:active {
@@ -593,13 +564,12 @@ footer a:hover {
 }
 
 .toast {
-    background: rgba(13, 20, 38, 0.95);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(30, 32, 48, 0.98);
+    border: 1px solid var(--border-color);
     color: var(--text-primary);
     padding: 1rem 1.5rem;
     border-radius: 1rem;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
     font-weight: 500;
     font-size: 0.875rem;
     display: flex;

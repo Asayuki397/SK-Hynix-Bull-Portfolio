@@ -1,14 +1,14 @@
 // Default Constants & Baseline config
 const DEFAULT_CONFIG = {
     // Hyperliquid
-    hlEntryVal: 23020.23, // USDC
+    hlEntryVal: 0,        // USDC (Rebalanced: No position)
     hlEntryPx: 1553.5,    // USDC
     hlLeverage: 5,
-    hlLiqPx: 1300.4,      // USDC
+    hlLiqPx: 0,           // USDC
     
     // ETF
-    etfShares: 1282,
-    etfBuyPx: 25288,      // KRW
+    etfShares: 1321,
+    etfBuyPx: 32706,      // KRW
     etfLeverageMult: 2,   // 2x leverage
     
     // Market Baselines (May 29, 2026 Close)
@@ -85,7 +85,14 @@ function loadConfig() {
     const saved = localStorage.getItem('hynix_portfolio_config');
     if (saved) {
         try {
-            state.config = { ...DEFAULT_CONFIG, ...JSON.parse(saved) };
+            let parsed = JSON.parse(saved);
+            // Migrate users with old defaults to the new rebalanced defaults
+            if (parsed.hlEntryVal === 23020.23 || parsed.etfShares === 1282) {
+                parsed = { ...DEFAULT_CONFIG };
+                localStorage.setItem('hynix_portfolio_config', JSON.stringify(parsed));
+                console.log('Migrated old localStorage config to new portfolio balance defaults.');
+            }
+            state.config = { ...DEFAULT_CONFIG, ...parsed };
             showToast('Configuration loaded from localStorage.', 'success');
         } catch (e) {
             console.error('Failed to parse saved config, using defaults', e);
@@ -405,7 +412,8 @@ function calculateAndRender() {
     // ----------------------------------------------------
     // 1. Hyperliquid Calculations
     // ----------------------------------------------------
-    const hlSize = config.hlEntryVal / config.hlEntryPx;
+    const hasHlPosition = config.hlEntryVal > 0;
+    const hlSize = config.hlEntryPx > 0 ? config.hlEntryVal / config.hlEntryPx : 0;
     const hlCurrentPrice = market.hlPrice || config.hlEntryPx; // fallback to entry if 0
     const hlValueUsd = hlSize * hlCurrentPrice;
     const hlValueKrw = hlValueUsd * market.usdKrwRate;
@@ -419,10 +427,10 @@ function calculateAndRender() {
     
     // Margin Health / Distance to liquidation
     // Distance from current price to liquidation price
-    const distToLiq = hlCurrentPrice - config.hlLiqPx;
-    const entryToLiq = config.hlEntryPx - config.hlLiqPx;
+    const distToLiq = hasHlPosition ? hlCurrentPrice - config.hlLiqPx : 0;
+    const entryToLiq = hasHlPosition ? config.hlEntryPx - config.hlLiqPx : 0;
     // Health is 100% when current >= entry, scale down to 0% at liquidation
-    const safetyScore = Math.max(0, Math.min(100, (distToLiq / entryToLiq) * 100));
+    const safetyScore = (hasHlPosition && entryToLiq > 0) ? Math.max(0, Math.min(100, (distToLiq / entryToLiq) * 100)) : 0;
     
     // Daily Change
     const hlDailyChangePx = hlCurrentPrice - market.hlPrevDayPrice;
@@ -528,29 +536,42 @@ function calculateAndRender() {
     // --- Hyperliquid Perpetual Details ---
     const prevHlPrice = prevMarket ? prevMarket.hlPrice : null;
     updateAndFlash(els.hlPriceDisplay, formatUSD(hlCurrentPrice), hlCurrentPrice, prevHlPrice);
-    updateAndFlash(els.hlPnlDisplay, `${hlPnlUsd >= 0 ? '+' : ''}${formatUSD(hlPnlUsd)}`, hlPnlUsd, null, true);
+    
+    if (hasHlPosition) {
+        updateAndFlash(els.hlPnlDisplay, `${hlPnlUsd >= 0 ? '+' : ''}${formatUSD(hlPnlUsd)}`, hlPnlUsd, null, true);
+    } else {
+        els.hlPnlDisplay.textContent = "$0.00 (No Position)";
+        els.hlPnlDisplay.className = "value text-muted";
+        els.hlPnlDisplay.classList.remove('up', 'down');
+    }
     
     els.hlDetailSize.textContent = formatNum(hlSize, 4);
-    els.hlDetailEntry.textContent = formatUSD(config.hlEntryPx);
+    els.hlDetailEntry.textContent = hasHlPosition ? formatUSD(config.hlEntryPx) : 'N/A';
     els.hlDetailValUsd.textContent = formatUSD(hlValueUsd);
     els.hlDetailValKrw.textContent = formatKRW(hlValueKrw);
     els.hlDetailCollateral.textContent = formatUSD(hlCollateralUsd);
     els.hlDetailEquityKrw.textContent = formatKRW(hlEquityKrw);
-    els.hlDetailLiq.textContent = formatUSD(config.hlLiqPx);
+    els.hlDetailLiq.textContent = (hasHlPosition && config.hlLiqPx > 0) ? formatUSD(config.hlLiqPx) : 'N/A';
     
     // HL Daily Change display
     els.hlDetailDailyChange.textContent = `${hlDailyChangePx >= 0 ? '+' : ''}${formatUSD(hlDailyChangePx)} (${formatPct(hlDailyChangePct)})`;
     els.hlDetailDailyChange.style.color = hlDailyChangePx >= 0 ? 'var(--color-up)' : 'var(--color-down)';
 
     // HL Safety Bar
-    els.hlSafetyPct.textContent = `${safetyScore.toFixed(1)}% Safe`;
-    els.hlSafetyBar.style.width = `${safetyScore}%`;
-    if (safetyScore > 50) {
-        els.hlSafetyPct.style.color = 'var(--color-up)';
-    } else if (safetyScore > 20) {
-        els.hlSafetyPct.style.color = '#eab308'; // Warning yellow
+    if (hasHlPosition) {
+        els.hlSafetyPct.textContent = `${safetyScore.toFixed(1)}% Safe`;
+        els.hlSafetyBar.style.width = `${safetyScore}%`;
+        if (safetyScore > 50) {
+            els.hlSafetyPct.style.color = 'var(--color-up)';
+        } else if (safetyScore > 20) {
+            els.hlSafetyPct.style.color = '#eab308'; // Warning yellow
+        } else {
+            els.hlSafetyPct.style.color = 'var(--color-down)';
+        }
     } else {
-        els.hlSafetyPct.style.color = 'var(--color-down)';
+        els.hlSafetyPct.textContent = 'No Active Position';
+        els.hlSafetyPct.style.color = 'var(--text-muted)';
+        els.hlSafetyBar.style.width = '0%';
     }
 
     // --- Leveraged ETF Details ---
