@@ -236,7 +236,7 @@ async function fetchLiveData() {
 
         // 3. Fetch Naver Stock & ETF baselines when market is open
         try {
-            const isLocal = window.location.protocol.startsWith('http');
+            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '[::1]';
             const proxyUrl = isLocal ? '/api/proxy?url=' : 'https://api.allorigins.win/get?url=';
             const stockUrl = proxyUrl + encodeURIComponent('https://polling.finance.naver.com/api/realtime?query=SERVICE_ITEM:000660');
             const etfUrl = proxyUrl + encodeURIComponent('https://polling.finance.naver.com/api/realtime?query=SERVICE_ITEM:0195S0');
