@@ -236,7 +236,7 @@ async function fetchLiveData() {
 
         // 3. Fetch Naver Stock & ETF baselines when market is open
         try {
-            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const isLocal = window.location.protocol.startsWith('http');
             const proxyUrl = isLocal ? '/api/proxy?url=' : 'https://api.allorigins.win/get?url=';
             const stockUrl = proxyUrl + encodeURIComponent('https://polling.finance.naver.com/api/realtime?query=SERVICE_ITEM:000660');
             const etfUrl = proxyUrl + encodeURIComponent('https://polling.finance.naver.com/api/realtime?query=SERVICE_ITEM:0195S0');
@@ -606,6 +606,11 @@ els.settingsForm.addEventListener('submit', saveConfig);
 // Initialize App
 function init() {
     loadConfig();
+    
+    // Warn if running via file:// protocol
+    if (window.location.protocol === 'file:') {
+        showToast('Naver sync may fail on file:// due to CORS. Please use the local server (http://127.0.0.1:8080) for full sync.', 'error');
+    }
     
     // Render immediately using defaults/cache so the page is populated on load
     calculateAndRender();
