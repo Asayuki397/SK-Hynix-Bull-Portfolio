@@ -1,8 +1,7 @@
 # SK Hynix Leveraged Portfolio Terminal
 
-A premium, dark-themed cyberpunk portfolio dashboard designed to track integrated leveraged exposure to **SK Hynix** across two separate asset classes:
 1. **Hyperliquid Perpetual Contracts**: 5x Long `xyz:SKHX` position (xyz Sub-DEX).
-2. **KOSPI Leveraged ETF**: 2x TIGER SK하이닉스레버리지 (`0195S0`) spot position.
+2. **KOSPI Leveraged ETF**: 2x TIGER SK하이닉스단일종목레버리지 (`0195S0`) spot position.
 
 The terminal automatically calculates net assets, combined face-value leverage exposure, unrealized P&L, and daily changes in KRW. It implements automatic baseline calibration using Naver Finance API data when the KOSPI market is open.
 
@@ -39,7 +38,7 @@ $$E_{\text{HL, KRW}} = E_{\text{HL, USD}} \times R_{\text{USD/KRW}}$$
 **Margin Safety (Distance to Liquidation)**:
 $$\text{Safety Score (\%)} = \max\left(0, \min\left(100, \frac{P_{\text{Current, USD}} - P_{\text{Liq, USD}}}{P_{\text{Entry, USD}} - P_{\text{Liq, USD}}} \times 100\right)\right)$$
 
-### 3. Leveraged ETF Position (2x TIGER SK하이닉스레버리지)
+### 3. Leveraged ETF Position (2x TIGER SK하이닉스단일종목레버리지)
 The Leveraged ETF tracks 2x the daily returns of the underlying SK Hynix stock. When KOSPI is closed, the theoretical market value of the ETF is projected based on the movements of the Hyperliquid SKHX perp.
 
 **Implied Stock Price ($S_{\text{Theoretical, KRW}}$)**:
