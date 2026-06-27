@@ -5,12 +5,12 @@ const DEFAULT_CONFIG = {
     hlEntryPx: 1553.5,    // USDC
     hlLeverage: 5,
     hlLiqPx: 0,           // USDC
-    
+
     // ETF
-    etfShares: 1321,
-    etfBuyPx: 32706,      // KRW
+    etfShares: 1331,
+    etfBuyPx: 32679,      // KRW
     etfLeverageMult: 2,   // 2x leverage
-    
+
     // Market Baselines (May 29, 2026 Close)
     stockBaseline: 2333000, // KRW
     etfBaseline: 23695      // KRW
@@ -36,7 +36,7 @@ const els = {
     // Top bar
     rateDisplay: document.getElementById('rate-display'),
     updateTimestamp: document.getElementById('update-timestamp'),
-    
+
     // Overview
     totalNav: document.getElementById('total-nav'),
     totalExposure: document.getElementById('total-exposure'),
@@ -46,7 +46,7 @@ const els = {
     totalChange: document.getElementById('total-change'),
     totalChangePct: document.getElementById('total-change-pct'),
     portfolioChangeCard: document.getElementById('portfolio-change-card'),
-    
+
     // Hyperliquid Position card
     hlPriceDisplay: document.getElementById('hl-price-display'),
     hlPnlDisplay: document.getElementById('hl-pnl-display'),
@@ -60,7 +60,7 @@ const els = {
     hlDetailDailyChange: document.getElementById('hl-detail-daily-change'),
     hlSafetyPct: document.getElementById('hl-safety-pct'),
     hlSafetyBar: document.getElementById('hl-safety-bar'),
-    
+
     // ETF card
     etfPriceDisplay: document.getElementById('etf-price-display'),
     etfPnlDisplay: document.getElementById('etf-pnl-display'),
@@ -73,7 +73,7 @@ const els = {
     etfDetailImpliedStock: document.getElementById('etf-detail-implied-stock'),
     etfDetailStockBaseline: document.getElementById('etf-detail-stock-baseline'),
     etfDetailEtfBaseline: document.getElementById('etf-detail-etf-baseline'),
-    
+
     // Panel Trigger & Form
     settingsTrigger: document.getElementById('settings-trigger'),
     settingsForm: document.getElementById('settings-form'),
@@ -111,16 +111,16 @@ function populateForm(force = false) {
         const el = document.getElementById(id);
         if (el) el.value = val;
     };
-    
+
     setVal('hl-entry-val', state.config.hlEntryVal);
     setVal('hl-entry-px', state.config.hlEntryPx);
     setVal('hl-leverage', state.config.hlLeverage);
     setVal('hl-liq-px', state.config.hlLiqPx);
-    
+
     setVal('etf-shares', state.config.etfShares);
     setVal('etf-buy-px', state.config.etfBuyPx);
     setVal('etf-leverage-mult', state.config.etfLeverageMult);
-    
+
     setVal('stock-baseline', state.config.stockBaseline);
     setVal('etf-baseline', state.config.etfBaseline);
 }
@@ -128,37 +128,37 @@ function populateForm(force = false) {
 // Save config from form
 function saveConfig(e) {
     e.preventDefault();
-    
+
     const getFloatVal = (id, fallback) => {
         const el = document.getElementById(id);
         return el ? (parseFloat(el.value) || fallback) : fallback;
     };
-    
+
     const getIntVal = (id, fallback) => {
         const el = document.getElementById(id);
         return el ? (parseInt(el.value) || fallback) : fallback;
     };
-    
+
     state.config.hlEntryVal = getFloatVal('hl-entry-val', DEFAULT_CONFIG.hlEntryVal);
     state.config.hlEntryPx = getFloatVal('hl-entry-px', DEFAULT_CONFIG.hlEntryPx);
     state.config.hlLeverage = getIntVal('hl-leverage', DEFAULT_CONFIG.hlLeverage);
     state.config.hlLiqPx = getFloatVal('hl-liq-px', DEFAULT_CONFIG.hlLiqPx);
-    
+
     state.config.etfShares = getIntVal('etf-shares', DEFAULT_CONFIG.etfShares);
     state.config.etfBuyPx = getFloatVal('etf-buy-px', DEFAULT_CONFIG.etfBuyPx);
     state.config.etfLeverageMult = getFloatVal('etf-leverage-mult', DEFAULT_CONFIG.etfLeverageMult);
-    
+
     state.config.stockBaseline = getFloatVal('stock-baseline', DEFAULT_CONFIG.stockBaseline);
     state.config.etfBaseline = getFloatVal('etf-baseline', DEFAULT_CONFIG.etfBaseline);
-    
+
     localStorage.setItem('hynix_portfolio_config', JSON.stringify(state.config));
     showToast('Configuration saved and applied!', 'success');
-    
+
     // Collapse settings panel after saving
     if (els.settingsTrigger) {
         els.settingsTrigger.classList.add('collapsed');
     }
-    
+
     populateForm(true);
     calculateAndRender();
 }
@@ -173,7 +173,7 @@ function showToast(message, type = '') {
         <span class="toast-message">${message}</span>
     `;
     container.appendChild(toast);
-    
+
     setTimeout(() => {
         toast.style.animation = 'none'; // reset animation to fade out or remove
         toast.remove();
@@ -209,7 +209,7 @@ async function fetchLiveData() {
                 const hlData = await hlRes.json();
                 const universe = hlData[0].universe;
                 const ctxs = hlData[1];
-                
+
                 let targetIndex = -1;
                 for (let i = 0; i < universe.length; i++) {
                     if (universe[i].name === 'xyz:SKHX') {
@@ -217,7 +217,7 @@ async function fetchLiveData() {
                         break;
                     }
                 }
-                
+
                 if (targetIndex >= 0) {
                     const ctx = ctxs[targetIndex];
                     state.market.hlPrice = parseFloat(ctx.midPx || ctx.markPx) || 0;
@@ -264,7 +264,7 @@ async function fetchLiveData() {
                             realStockBaseline = parseFloat(stockData.nv || stockData.sv);
                         }
                     }
-                    
+
                     if (realStockBaseline && realStockBaseline !== state.config.stockBaseline) {
                         state.config.stockBaseline = realStockBaseline;
                         baselinesUpdated = true;
@@ -293,7 +293,7 @@ async function fetchLiveData() {
                             realEtfBaseline = parseFloat(etfData.nv || etfData.sv);
                         }
                     }
-                    
+
                     if (realEtfBaseline && realEtfBaseline !== state.config.etfBaseline) {
                         state.config.etfBaseline = realEtfBaseline;
                         baselinesUpdated = true;
@@ -317,7 +317,7 @@ async function fetchLiveData() {
         if (els.updateTimestamp) {
             els.updateTimestamp.textContent = now.toLocaleTimeString('ko-KR', { hour12: false });
         }
-        
+
         // Success Toast (only occasional, not on every poll to prevent noise)
         if (Math.random() < 0.1) {
             showToast('Data synced successfully.', 'success');
@@ -338,22 +338,22 @@ async function fetchLiveData() {
 // Flash Animation Handler on Value Change
 function updateAndFlash(element, valueText, numericValue, prevNumericValue, isPositiveNegativeStyle = false) {
     if (!element) return;
-    
+
     // Check if value changed
     if (prevNumericValue !== undefined && prevNumericValue !== null && numericValue !== prevNumericValue) {
         element.classList.remove('flash-up', 'flash-down');
         // Force reflow
         void element.offsetWidth;
-        
+
         if (numericValue > prevNumericValue) {
             element.classList.add('flash-up');
         } else {
             element.classList.add('flash-down');
         }
     }
-    
+
     element.textContent = valueText;
-    
+
     if (isPositiveNegativeStyle) {
         element.classList.remove('up', 'down');
         if (numericValue > 0) {
@@ -368,14 +368,14 @@ function updateAndFlash(element, valueText, numericValue, prevNumericValue, isPo
 function calculateAndRender() {
     if (!state.hasFetched) {
         const placeholder = "Fetching, please wait.";
-        
+
         els.totalNav.textContent = placeholder;
         els.totalExposure.textContent = placeholder;
         els.totalPnl.textContent = placeholder;
         els.totalPnlRoi.textContent = placeholder;
         els.totalChange.textContent = placeholder;
         els.totalChangePct.textContent = placeholder;
-        
+
         els.hlPriceDisplay.textContent = placeholder;
         els.hlPnlDisplay.textContent = placeholder;
         els.hlDetailSize.textContent = placeholder;
@@ -388,7 +388,7 @@ function calculateAndRender() {
         els.hlDetailDailyChange.textContent = placeholder;
         els.hlSafetyPct.textContent = placeholder;
         els.hlSafetyBar.style.width = "0%";
-        
+
         els.etfPriceDisplay.textContent = placeholder;
         els.etfPnlDisplay.textContent = placeholder;
         els.etfDetailShares.textContent = placeholder;
@@ -400,7 +400,7 @@ function calculateAndRender() {
         els.etfDetailImpliedStock.textContent = placeholder;
         els.etfDetailStockBaseline.textContent = placeholder;
         els.etfDetailEtfBaseline.textContent = placeholder;
-        
+
         els.rateDisplay.textContent = placeholder;
         return;
     }
@@ -408,7 +408,7 @@ function calculateAndRender() {
     const config = state.config;
     const market = state.market;
     const prevMarket = state.previousMarket;
-    
+
     // ----------------------------------------------------
     // 1. Hyperliquid Calculations
     // ----------------------------------------------------
@@ -417,21 +417,21 @@ function calculateAndRender() {
     const hlCurrentPrice = market.hlPrice || config.hlEntryPx; // fallback to entry if 0
     const hlValueUsd = hlSize * hlCurrentPrice;
     const hlValueKrw = hlValueUsd * market.usdKrwRate;
-    
+
     const hlPnlUsd = hlSize * (hlCurrentPrice - config.hlEntryPx);
     const hlPnlKrw = hlPnlUsd * market.usdKrwRate;
-    
+
     const hlCollateralUsd = config.hlEntryVal / config.hlLeverage;
     const hlEquityUsd = hlCollateralUsd + hlPnlUsd;
     const hlEquityKrw = hlEquityUsd * market.usdKrwRate;
-    
+
     // Margin Health / Distance to liquidation
     // Distance from current price to liquidation price
     const distToLiq = hasHlPosition ? hlCurrentPrice - config.hlLiqPx : 0;
     const entryToLiq = hasHlPosition ? config.hlEntryPx - config.hlLiqPx : 0;
     // Health is 100% when current >= entry, scale down to 0% at liquidation
     const safetyScore = (hasHlPosition && entryToLiq > 0) ? Math.max(0, Math.min(100, (distToLiq / entryToLiq) * 100)) : 0;
-    
+
     // Daily Change
     const hlDailyChangePx = hlCurrentPrice - market.hlPrevDayPrice;
     const hlDailyChangePct = (hlDailyChangePx / market.hlPrevDayPrice) * 100;
@@ -443,18 +443,18 @@ function calculateAndRender() {
     // ----------------------------------------------------
     // Underlying stock price in KRW = HL Perp price in USD * exchange rate
     const stockPriceKrw = hlCurrentPrice * market.usdKrwRate;
-    
+
     // Stock daily return = (Current stock price / stock baseline close) - 1
     const stockDailyReturn = (stockPriceKrw / config.stockBaseline) - 1;
-    
+
     // Theoretical ETF Price = ETF baseline close * (1 + 2 * stock daily return)
     const etfTheoreticalPrice = config.etfBaseline * (1 + (config.etfLeverageMult * stockDailyReturn));
-    
+
     const etfTotalCost = config.etfShares * config.etfBuyPx;
     const etfTheoreticalValue = config.etfShares * etfTheoreticalPrice;
     const etfPnlKrw = etfTheoreticalValue - etfTotalCost;
     const etfRoiPct = (etfPnlKrw / etfTotalCost) * 100;
-    
+
     // ETF Daily Change
     const etfDailyReturn = config.etfLeverageMult * stockDailyReturn;
     const etfDailyChangeKrw = (etfTheoreticalPrice - config.etfBaseline) * config.etfShares;
@@ -464,11 +464,11 @@ function calculateAndRender() {
     // ----------------------------------------------------
     // Net Asset Value (NAV) = HL Margin Equity + ETF Value
     const totalNavKrw = hlEquityKrw + etfTheoreticalValue;
-    
+
     // Total Exposure = HL Position Value + ETF Exposure Value (Value * Leverage Multiplier)
     const etfExposureKrw = etfTheoreticalValue * config.etfLeverageMult;
     const totalExposureKrw = hlValueKrw + etfExposureKrw;
-    
+
     // Total Daily Change = HL Daily Change + ETF Daily Change
     const totalDailyChangeKrw = hlDailyChangeKrw + etfDailyChangeKrw;
     // Total Portfolio NAV Yesterday = Total NAV - Total Daily Change
@@ -483,35 +483,35 @@ function calculateAndRender() {
     // ----------------------------------------------------
     // 4. Render UI
     // ----------------------------------------------------
-    
+
     // Top Bar exchange rate
     const prevRate = prevMarket ? prevMarket.usdKrwRate : null;
     updateAndFlash(els.rateDisplay, `${formatNum(market.usdKrwRate, 2)} KRW`, market.usdKrwRate, prevRate);
 
     // Overview Cards
-    const prevNav = prevMarket ? (prevMarket.hlPrice ? 
-        ((config.hlEntryVal / config.hlLeverage + (config.hlEntryVal / config.hlEntryPx) * (prevMarket.hlPrice - config.hlEntryPx)) * prevMarket.usdKrwRate) + 
+    const prevNav = prevMarket ? (prevMarket.hlPrice ?
+        ((config.hlEntryVal / config.hlLeverage + (config.hlEntryVal / config.hlEntryPx) * (prevMarket.hlPrice - config.hlEntryPx)) * prevMarket.usdKrwRate) +
         (config.etfShares * (config.etfBaseline * (1 + config.etfLeverageMult * ((prevMarket.hlPrice * prevMarket.usdKrwRate / config.stockBaseline) - 1))))
         : null) : null;
 
-    const prevExposure = prevMarket ? (prevMarket.hlPrice ? 
-        (((config.hlEntryVal / config.hlEntryPx) * prevMarket.hlPrice * prevMarket.usdKrwRate) + 
-        (config.etfShares * (config.etfBaseline * (1 + config.etfLeverageMult * ((prevMarket.hlPrice * prevMarket.usdKrwRate / config.stockBaseline) - 1))) * config.etfLeverageMult))
+    const prevExposure = prevMarket ? (prevMarket.hlPrice ?
+        (((config.hlEntryVal / config.hlEntryPx) * prevMarket.hlPrice * prevMarket.usdKrwRate) +
+            (config.etfShares * (config.etfBaseline * (1 + config.etfLeverageMult * ((prevMarket.hlPrice * prevMarket.usdKrwRate / config.stockBaseline) - 1))) * config.etfLeverageMult))
         : null) : null;
-        
+
     updateAndFlash(els.totalNav, formatKRW(totalNavKrw), totalNavKrw, prevNav);
     updateAndFlash(els.totalExposure, formatKRW(totalExposureKrw), totalExposureKrw, prevExposure);
-    
+
     // Render PnL Card
-    const prevPnl = prevMarket ? (prevMarket.hlPrice ? 
-        (((config.hlEntryVal / config.hlEntryPx) * (prevMarket.hlPrice - config.hlEntryPx)) * prevMarket.usdKrwRate) + 
+    const prevPnl = prevMarket ? (prevMarket.hlPrice ?
+        (((config.hlEntryVal / config.hlEntryPx) * (prevMarket.hlPrice - config.hlEntryPx)) * prevMarket.usdKrwRate) +
         (config.etfShares * ((config.etfBaseline * (1 + config.etfLeverageMult * ((prevMarket.hlPrice * prevMarket.usdKrwRate / config.stockBaseline) - 1))) - config.etfBuyPx))
         : null) : null;
-        
+
     const pnlText = `${totalPnlKrw >= 0 ? '+' : ''}${formatKRW(totalPnlKrw)}`;
     updateAndFlash(els.totalPnl, pnlText, totalPnlKrw, prevPnl);
     els.totalPnlRoi.textContent = `${formatPct(totalRoiPct)} Total Return on Investment`;
-    
+
     if (totalPnlKrw >= 0) {
         els.portfolioPnlCard.classList.remove('negative');
         els.totalPnl.style.color = 'var(--color-up)';
@@ -519,12 +519,12 @@ function calculateAndRender() {
         els.portfolioPnlCard.classList.add('negative');
         els.totalPnl.style.color = 'var(--color-down)';
     }
-    
+
     // Daily Change Overview Pill
     const dailyChangeText = `${formatKRW(totalDailyChangeKrw)} (${formatPct(totalDailyChangePct)})`;
     updateAndFlash(els.totalChange, dailyChangeText, totalDailyChangeKrw, null);
     els.totalChangePct.textContent = `Daily Change based on KST Timeframe (UTC+09)`;
-    
+
     if (totalDailyChangeKrw >= 0) {
         els.portfolioChangeCard.classList.remove('negative');
         els.totalChange.style.color = 'var(--color-up)';
@@ -536,7 +536,7 @@ function calculateAndRender() {
     // --- Hyperliquid Perpetual Details ---
     const prevHlPrice = prevMarket ? prevMarket.hlPrice : null;
     updateAndFlash(els.hlPriceDisplay, formatUSD(hlCurrentPrice), hlCurrentPrice, prevHlPrice);
-    
+
     if (hasHlPosition) {
         updateAndFlash(els.hlPnlDisplay, `${hlPnlUsd >= 0 ? '+' : ''}${formatUSD(hlPnlUsd)}`, hlPnlUsd, null, true);
     } else {
@@ -544,7 +544,7 @@ function calculateAndRender() {
         els.hlPnlDisplay.className = "value text-muted";
         els.hlPnlDisplay.classList.remove('up', 'down');
     }
-    
+
     els.hlDetailSize.textContent = formatNum(hlSize, 4);
     els.hlDetailEntry.textContent = hasHlPosition ? formatUSD(config.hlEntryPx) : 'N/A';
     els.hlDetailValUsd.textContent = formatUSD(hlValueUsd);
@@ -552,7 +552,7 @@ function calculateAndRender() {
     els.hlDetailCollateral.textContent = formatUSD(hlCollateralUsd);
     els.hlDetailEquityKrw.textContent = formatKRW(hlEquityKrw);
     els.hlDetailLiq.textContent = (hasHlPosition && config.hlLiqPx > 0) ? formatUSD(config.hlLiqPx) : 'N/A';
-    
+
     // HL Daily Change display
     els.hlDetailDailyChange.textContent = `${hlDailyChangePx >= 0 ? '+' : ''}${formatUSD(hlDailyChangePx)} (${formatPct(hlDailyChangePct)})`;
     els.hlDetailDailyChange.style.color = hlDailyChangePx >= 0 ? 'var(--color-up)' : 'var(--color-down)';
@@ -577,16 +577,16 @@ function calculateAndRender() {
     // --- Leveraged ETF Details ---
     updateAndFlash(els.etfPriceDisplay, formatKRW(etfTheoreticalPrice), etfTheoreticalPrice, prevNav ? etfTheoreticalPrice : null);
     updateAndFlash(els.etfPnlDisplay, `${etfPnlKrw >= 0 ? '+' : ''}${formatKRW(etfPnlKrw)}`, etfPnlKrw, null, true);
-    
+
     els.etfDetailShares.textContent = formatNum(config.etfShares, 0);
     els.etfDetailAvgPrice.textContent = formatKRW(config.etfBuyPx);
     els.etfDetailCost.textContent = formatKRW(etfTotalCost);
     els.etfDetailVal.textContent = formatKRW(etfTheoreticalValue);
     els.etfDetailExposure.textContent = formatKRW(etfExposureKrw);
-    
+
     els.etfDetailRoi.textContent = formatPct(etfRoiPct);
     els.etfDetailRoi.style.color = etfPnlKrw >= 0 ? 'var(--color-up)' : 'var(--color-down)';
-    
+
     els.etfDetailImpliedStock.textContent = formatKRW(stockPriceKrw);
     els.etfDetailStockBaseline.textContent = formatKRW(config.stockBaseline);
     els.etfDetailEtfBaseline.textContent = formatKRW(config.etfBaseline);
@@ -606,18 +606,18 @@ els.settingsForm.addEventListener('submit', saveConfig);
 // Initialize App
 function init() {
     loadConfig();
-    
+
     // Warn if running via file:// protocol
     if (window.location.protocol === 'file:') {
         showToast('Naver sync may fail on file:// due to CORS. Please use the local server (http://127.0.0.1:8080) for full sync.', 'error');
     }
-    
+
     // Render immediately using defaults/cache so the page is populated on load
     calculateAndRender();
-    
+
     // Initial fetch
     fetchLiveData();
-    
+
     // Live Polling every 10 seconds
     setInterval(fetchLiveData, 10000);
 }
