@@ -4,7 +4,7 @@ $listener.Start()
 Write-Host "Local web server running at http://127.0.0.1:8080/"
 Write-Host "Press Ctrl+C to stop the server."
 
-$currentDir = [System.IO.Path]::GetFullPath("C:\Users\Administrator\.gemini\antigravity\scratch\portfolio-viewer")
+$currentDir = $PSScriptRoot
 
 try {
     while ($listener.IsListening) {
