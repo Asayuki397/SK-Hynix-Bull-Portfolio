@@ -7,8 +7,8 @@ const DEFAULT_CONFIG = {
     hlLiqPx: 0,           // USDC
 
     // ETF
-    etfShares: 1331,
-    etfBuyPx: 32679,      // KRW
+    etfShares: 1568,
+    etfBuyPx: 30756,      // KRW
     etfLeverageMult: 2,   // 2x leverage
 
     // Market Baselines (May 29, 2026 Close)
