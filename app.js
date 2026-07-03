@@ -94,19 +94,27 @@ function loadConfig() {
             }
 
             // Check if DEFAULT_CONFIG in app.js has changed compared to the stored reference
-            const keysToCheck = Object.keys(DEFAULT_CONFIG);
+            const keysToCheck = [
+                'hlEntryVal', 'hlEntryPx', 'hlLeverage', 'hlLiqPx',
+                'etfShares', 'etfBuyPx', 'etfLeverageMult'
+            ];
             const referenceDiffers = !parsedRef || keysToCheck.some(k => parsedRef[k] !== DEFAULT_CONFIG[k]);
 
             if (referenceDiffers) {
-                parsed = { ...DEFAULT_CONFIG };
+                // Update only the position parameters from the new DEFAULT_CONFIG, keeping the fetched/saved baselines
+                keysToCheck.forEach(k => {
+                    parsed[k] = DEFAULT_CONFIG[k];
+                });
                 localStorage.setItem('hynix_portfolio_config', JSON.stringify(parsed));
                 localStorage.setItem('hynix_portfolio_default_reference', JSON.stringify(DEFAULT_CONFIG));
-                console.log('Detected change in DEFAULT_CONFIG. Auto-synced saved config to new defaults.');
-                showToast('Detected change in default configuration. Auto-synced settings.', 'success');
+                console.log('Detected change in DEFAULT_CONFIG position values. Auto-synced position settings.');
+                showToast('Detected change in default position settings. Auto-synced settings.', 'success');
             } else {
                 // Migrate users with old defaults to the new rebalanced defaults (legacy fallback)
                 if (parsed.hlEntryVal === 23020.23 || parsed.etfShares === 1282) {
-                    parsed = { ...DEFAULT_CONFIG };
+                    keysToCheck.forEach(k => {
+                        parsed[k] = DEFAULT_CONFIG[k];
+                    });
                     localStorage.setItem('hynix_portfolio_config', JSON.stringify(parsed));
                     localStorage.setItem('hynix_portfolio_default_reference', JSON.stringify(DEFAULT_CONFIG));
                     console.log('Migrated old localStorage config to new portfolio balance defaults.');
